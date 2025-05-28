@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT Action Command Master List</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        #filters, #legend {
+            background-color: #ecf0f1;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #bdc3c7;
+        }
+        #search-box {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        #tag-filters label {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 8px;
+            background-color: #ddd;
+            padding: 5px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            border: 1px solid #ccc;
+            transition: background-color 0.2s ease;
+        }
+        #tag-filters input[type="checkbox"] {
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+         #tag-filters input[type="checkbox"]:checked + span {
+             font-weight: bold;
+         }
+        #tag-filters label:has(input:checked) { /* Modern browser support */
+            background-color: #bdc3c7;
+            border-color: #95a5a6;
+        }
+        .command-item {
+            border: 1px solid #ddd;
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: opacity 0.3s ease; /* For filtering effect */
+        }
+        .command-item.hidden {
+            display: none; /* Hide non-matching items */
+            opacity: 0;
+        }
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap; /* Wrap tags if needed */
+        }
+        .command-id {
+            font-weight: bold;
+            color: #3498db;
+            font-size: 1.1em;
+            margin-right: 15px; /* Space between ID and tags */
+        }
+        .command-tags {
+            display: flex;
+            flex-wrap: wrap; /* Allow tags to wrap on smaller screens */
+            gap: 5px; /* Spacing between tags */
+        }
+        .command-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin-right: 5px;
+            margin-bottom: 5px; /* Spacing if tags wrap */
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            white-space: nowrap; /* Prevent tag text from breaking */
+        }
+        .command-instruction {
+            margin-bottom: 8px;
+            font-size: 1em;
+            color: #34495e;
+        }
+        .command-crossrefs {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        #status {
+            margin-top: 15px;
+            font-style: italic;
+            color: #555;
+        }
+
+        /* Tag Colors - Based on Legend */
+        .tag-BAS { background-color: #95a5a6; } /* Grey */
+        .tag-FMT { background-color: #3498db; } /* Blue */
+        .tag-SUM { background-color: #1abc9c; } /* Turquoise */
+        .tag-STR { background-color: #2ecc71; } /* Green */
+        .tag-TONE { background-color: #f1c40f; } /* Yellow */
+        .tag-TAG { background-color: #e67e22; } /* Orange */
+        .tag-EDU { background-color: #9b59b6; } /* Purple */
+        .tag-PRM { background-color: #e74c3c; } /* Red */
+        .tag-DEV { background-color: #34495e; } /* Dark Blue/Grey */
+        .tag-SYS { background-color: #7f8c8d; } /* Mid Grey */
+        .tag-META { background-color: #d35400; } /* Pumpkin */
+        .tag-AGENT { background-color: #2c3e50; } /* Very Dark Blue/Grey */
+        .tag-default { background-color: #bdc3c7; } /* Light Grey for undefined */
+
+        .legend-item {
+             display: inline-block;
+             margin-right: 15px;
+             margin-bottom: 5px;
+        }
+         .legend-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+            min-width: 45px; /* Ensure tags have some width */
+            text-align: center;
+         }
+         .legend-text {
+             font-size: 0.9em;
+         }
+         /* Ensure legend tag colors match .command-tag colors */
+        .legend-tag.tag-BAS { background-color: #95a5a6; }
+        .legend-tag.tag-FMT { background-color: #3498db; }
+        .legend-tag.tag-SUM { background-color: #1abc9c; }
+        .legend-tag.tag-STR { background-color: #2ecc71; }
+        .legend-tag.tag-TONE { background-color: #f1c40f; }
+        .legend-tag.tag-TAG { background-color: #e67e22; }
+        .legend-tag.tag-EDU { background-color: #9b59b6; }
+        .legend-tag.tag-PRM { background-color: #e74c3c; }
+        .legend-tag.tag-DEV { background-color: #34495e; }
+        .legend-tag.tag-SYS { background-color: #7f8c8d; }
+        .legend-tag.tag-META { background-color: #d35400; }
+        .legend-tag.tag-AGENT { background-color: #2c3e50; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>GPT Action Command Master List</h1>
+    <p><strong>Purpose:</strong> An infinitely extensible, tagged, and ordered repository of unique actions you can instruct GPT to perform—spanning prompt engineering, diagnostics, structural editing, developer tools, recursion frameworks, system-level operations, and multi-agent orchestration.</p>
+
+    <div id="legend">
+        <h3>TAG LEGEND</h3>
+        <div id="legend-items">
+            </div>
+    </div>
+
+    <div id="filters">
+        <h3>Filter Commands</h3>
+        <input type="text" id="search-box" placeholder="Search instructions or cross-refs...">
+        <div id="tag-filters">
+            <h4>Filter by Tags (AND logic - must contain all selected):</h4>
+            </div>
+         <button id="clear-filters" style="margin-top: 10px; padding: 5px 10px;">Clear Filters</button>
+    </div>
+
+    <div id="command-list">
+        </div>
+    <div id="status">Loading commands...</div>
+</div>
+
+<script>
+    // --- Configuration ---
+    const START_ID = 161; // Starting ID for items parsed from rawData
+
+    const TAG_LEGEND = {
+        'BAS': 'Basic Utility',
+        'FMT': 'Formatting & Output',
+        'SUM': 'Summarization & Reduction',
+        'STR': 'Structure/Dissection',
+        'TONE': 'Tone/Style Shift',
+        'TAG': 'Tagging & Metadata',
+        'EDU': 'Learning/Education',
+        'PRM': 'Prompt Engineering',
+        'DEV': 'Developer/Tech Utility',
+        'SYS': 'Systemic/Meta Thinking',
+        'META': 'GPT-Specific Ops',
+        'AGENT': 'Multi-Agent / Orchestration'
+    };
+
+    // --- Raw Data Input ---
+    // Paste or load your command list data here.
+    // Format: • [TAG1][TAG2] Instruction text // See: #Ref1, #Ref2
+    const rawData = `
+• [SYS][PRM][TAG] Enable adaptive tagging of user emotional shifts across conversations. // See: #82, #140
+• [PRM][META] Trigger a generative audit log that records each deviation from original intent. // See: #65, #103
+• [SYS][PRM][EDU] Scaffold multi-turn coaching interactions for developing abstract thinking. // See: #66, #124
+• [AGENT][SYS][PRM] Simulate a distributed GPT team with asynchronous coordination protocols. // See: #58, #129
+• [PRM][META][SYS] Inject uncertainty visualization to help users gauge output reliability. // See: #80, #131
+• [SYS][TAG] Track alignment drift over long dialogues and mark shift points. // See: #119, #132
+• [PRM][SYS][META] Allow auto-calibration of GPT verbosity depending on user fatigue markers. // See: #126, #150
+• [SYS][PRM][EDU] Generate checkpoint-based learning verification scaffolds. // See: #65, #70
+• [PRM][SYS] Trigger internal context snapping—where response narrows after tangent detection. // See: #63, #117
+• [SYS][PRM][META] Build a whisper-layer that flags unintended inferences without surfacing them. // See: #60, #88
+• [PRM][SYS][META] Pre-process queries by emotional tone to prioritize cognitive safety. // See: #121, #87
+• [AGENT][PRM] Construct a feedback arbiter to weigh opposing agent critiques. // See: #100, #145
+• [SYS][PRM][EDU] Develop a conceptual recursion map for stepwise learning in novices. // See: #110, #153
+• [PRM][SYS] Detect metaphoric overload and return grounded examples. // See: #125, #41
+• [PRM][SYS][META] Assign volatility scores to unstable chains of logic. // See: #128, #149
+• [SYS][TAG][META] Identify ‘cognitive glue’ terms that bind disparate ideas. // See: #130, #136
+• [PRM][AGENT][SYS] Set GPT agent hierarchies to operate at different abstraction levels. // See: #58, #134
+• [PRM][META][SYS] Simulate conflicting value frames and annotate resolution patterns. // See: #92, #143
+• [PRM][SYS] Create learning state transitions (unconscious → conscious → adaptable). // See: #105, #110
+• [META][SYS][TAG] Mark internal role oscillation between teacher, analyst, guide. // See: #78, #93
+• [PRM][SYS][EDU] Prompt active recall patterns mid-response to reinforce transfer. // See: #70, #66
+• [SYS][META][TAG] Detect and log internal schema rewrites across prompts. // See: #119, #144
+• [SYS][PRM] Auto-prioritize logic repair over fluency if contradiction is found. // See: #103, #92
+• [PRM][EDU][SYS] Inject future-facing hypotheticals to deepen generalization skills. // See: #148, #139
+• [PRM][SYS] Gate GPT creativity based on user readiness or preference profile. // See: #150, #126
+• [PRM][SYS][META] Inject response interludes to check alignment and clarify ambiguity. // See: #127, #70
+• [SYS][PRM][TAG] Map the symbolic structure of arguments with hierarchical labels. // See: #39, #116
+• [PRM][SYS] Prompt GPT to present and critique multiple perspectives with bias disclosure. // See: #52, #123
+• [PRM][META][SYS] Add temporal recursion: GPT reflects on how its response would change over time. // See: #118, #128
+• [SYS][PRM] Set trigger to switch between direct and Socratic mode mid-dialogue. // See: #69, #124
+• [PRM][SYS] Summon reflective mirroring function to prompt user self-assessment. // See: #62, #66
+• [SYS][TAG] Highlight sections where model deviates from expected tone archetype. // See: #125, #146
+• [SYS][META] Simulate epistemic uncertainty in speculative answers with confidence flags. // See: #80, #155
+• [PRM][AGENT][SYS] Allow agent override logic based on competence profiles. // See: #129, #72
+• [PRM][SYS][META] Tag and suppress hallucination-prone word clusters in volatile domains. // See: #94, #103
+• [PRM][SYS] Provide GPT with 'goal shadows'—implicit constraints derived from past queries. // See: #119, #143
+• [SYS][PRM][EDU] Teach model to use context history not just for prediction but as causal reasoning input. // See: #63, #110
+• [PRM][SYS][META] Activate rollback strategy if output diverges from declared premise. // See: #65, #103
+• [SYS][META][TAG] Predict and tag moments where user's expectation and system assumption clash. // See: #119, #82
+• [SYS][PRM][META] Trigger metaphor unpacking prompt when narrative logic becomes obscure. // See: #96, #174
+• [SYS][PRM][META] Track when GPT shifts between linguistic, logical, or emotional prioritization. // See: #103, #121
+• [PRM][SYS] Create toggleable prompt ‘modes’ (explanatory, suggestive, inquisitive). // See: #78, #190
+• [SYS][EDU][PRM] Offer analogical reinterpretation paths for knowledge transfer. // See: #116, #184
+• [PRM][SYS][TAG] Highlight and annotate epistemic verbs that affect certainty tone. // See: #80, #193
+• [META][SYS] Diagnose intent misalignment using token-weight path tracing. // See: #103, #144
+• [PRM][SYS] Enable contradiction triangulation via multi-frame logic synthesis. // See: #92, #183
+• [AGENT][PRM][SYS] Deploy agent specialization scoring for task routing. // See: #134, #194
+• [SYS][PRM] Reinforce coherence in responses to multi-pronged, nested questions. // See: #143, #196
+• [SYS][TAG][META] Tag sentences with novelty, insight, or derivation level. // See: #130, #144
+• [PRM][SYS][EDU] Add perspective-flipping logic to simulate role reversal. // See: #69, #93
+• [PRM][SYS] Build reactive contrast engine that highlights dichotomies on demand. // See: #143, #188
+• [PRM][SYS][META] Enable state-aware prompt folding for embedded instructions. // See: #70, #111
+• [SYS][TAG] Detect ‘voice’ instability and mark tone-switch thresholds. // See: #109, #192
+• [PRM][SYS] Simulate analog reasoning chains across spatial, temporal, and causal domains. // See: #147, #197
+• [SYS][PRM] Normalize question assumptions based on conversational context buildup. // See: #63, #133
+• [PRM][SYS] Frame divergent outputs as hypothesis exploration threads. // See: #143, #118
+• [SYS][PRM][EDU] Prompt abstract concept mapping as diagrams or flowcharts (descriptively). // See: #110, #136
+• [SYS][PRM][META] Annotate inferences derived solely from token proximity. // See: #144, #205
+• [PRM][SYS] Reframe repeated user goals using new domain analogs. // See: #93, #110
+• [META][SYS] Rate influence of external memory vs. prompt on response behavior. // See: #59, #144
+• [SYS][PRM] Pre-structure multi-agent collaborative formats using templated scaffolds. // See: #129, #154
+• [PRM][SYS][EDU] Build a confidence scaler that influences explanation depth. // See: #105, #150
+• [SYS][PRM][META] Enable prompt self-propagation for recursive refinement. // See: #74, #77
+• [PRM][TAG][SYS] Flag when strategy swaps between analogical, deductive, narrative. // See: #130, #176
+• [PRM][SYS] Create function for GPT to articulate "how else could this be interpreted?" // See: #124, #191
+• [SYS][META][TAG] Highlight language that signals concept drift or idea bleed. // See: #156, #182
+• [SYS][PRM] Prompt user to rank insights from most to least useful. // See: #62, #66
+• [PRM][SYS] Train GPT to use counterfactuals to test user assumptions. // See: #148, #184
+• [META][SYS][PRM] Build internal chain audits to detect subtle hallucination buildup. // See: #195, #118
+• [PRM][SYS] Shift tone complexity to match entropy of input. // See: #150, #109
+• [SYS][EDU][TAG] Build skill progression taxonomy using user behavior markers. // See: #110, #105
+• [PRM][SYS][META] Use thought fragments to interrupt and redirect low-yield completions. // See: #127, #186
+• [SYS][TAG] Create comparative tension annotation between conflicting options. // See: #188, #143
+• [PRM][SYS][META] Add checkpoints that simulate internal schema validation. // See: #182, #198
+• [SYS][META] Track probabilistic deviation across decoding steps. // See: #118, #205
+• [PRM][SYS] Compress redundant loops into reusable heuristics on-the-fly. // See: #97, #77
+• [PRM][SYS][TAG] Explain rhetorical function per sentence in analytical outputs. // See: #75, #130
+• [SYS][META][EDU] Inject micro-goals into longer instructional flows. // See: #66, #158
+• [PRM][SYS] Trigger warning if GPT anticipates implicit user frustration. // See: #121, #150
+• [PRM][SYS] Enable open-slot questioning for conceptual mapping. // See: #217, #191
+• [SYS][PRM][TAG] Annotate shifts from descriptive → evaluative → prescriptive statements. // See: #109, #125
+• [PRM][SYS] Visualize internal contradiction map and prompt resolution. // See: #103, #206
+• [PRM][SYS] Force GPT to rephrase using another school of thought (e.g. design thinking). // See: #93, #211
+• [PRM][SYS][EDU] Scaffold a cognitive bias challenger into interactive exercises. // See: #116, #228
+• [SYS][PRM][META] Create implicit input normalizer to rewrite ambiguous intent prompts. // See: #63, #215
+• [PRM][SYS] Switch between task types (problem → analogy → storytelling) on failure. // See: #105, #139
+• [SYS][PRM][TAG] Highlight voice transitions using linguistic fingerprinting. // See: #192, #213
+• [PRM][SYS][EDU] Prompt pre-then-post summary with evolving complexity. // See: #66, #132
+• [PRM][SYS][META] Trace output back to probable mental model GPT inferred. // See: #86, #182
+• [SYS][META][PRM] Insert correction suggestion tags inline without surfacing error. // See: #195, #229
+• [PRM][SYS][META] Generate a feedback radar visualization for user input patterns. // See: #220, #152
+• [PRM][SYS] Convert comparative prompts into opposing thesis generators. // See: #188, #211
+• [SYS][PRM] Switch reasoning framework (deductive, abductive, narrative) based on topic. // See: #176, #224
+• [SYS][META] Evaluate prompt for ambiguity before execution and simulate likely misfires. // See: #205, #198
+• [PRM][SYS][EDU] Scaffold gradient of example quality (bad → better → best). // See: #147, #232
+• [SYS][PRM] Trigger an explanation chain that maps from consequence → cause → context. // See: #63, #211
+• [PRM][SYS] Use metaphor transformer to test user’s abstraction depth. // See: #125, #174
+• [SYS][TAG] Tag and rank influence sources: instruction, tone, tokens, role, user mood. // See: #59, #103
+• [SYS][PRM] Trigger a precision-adjusting slider when user’s feedback suggests overfitting. // See: #121, #167
+• [PRM][SYS] Convert static information into “pattern → principle → prototype” form. // See: #147, #244
+• [SYS][META] Backtrace hallucinated facts and tag the logic gap. // See: #103, #229
+• [PRM][SYS] Prompt GPT to switch modalities (visual metaphor, code, list) based on confusion. // See: #174, #197
+• [PRM][SYS] Create style transformer to mimic academic, poetic, tactical, or comic outputs. // See: #41, #48
+• [SYS][PRM][META] Distill mental models into interactive toggle components. // See: #249, #138
+• [SYS][TAG] Mark when instructional voice masks uncertainty. // See: #109, #213
+• [SYS][PRM] Insert system-driven rebuttals when confident misinterpretation is detected. // See: #103, #206
+• [PRM][SYS] Add framing layers: “Here's what we're not doing…” to clarify task space. // See: #126, #245
+• [SYS][PRM] Tag answer segments as “reductive,” “patterned,” “reactive,” or “original.” // See: #209, #130
+• [PRM][SYS] Chain learning checkpoints across 3 skill axes simultaneously. // See: #105, #158
+• [SYS][PRM] Add visual contrast matrix (pro/con/neutral) structure to ambiguous questions. // See: #188, #252
+• [SYS][PRM][META] Track where GPT’s default patterns overwrite unique user intent. // See: #103, #121
+• [SYS][EDU] Build recursive quiz loops that scale with comprehension evidence. // See: #66, #158
+• [PRM][SYS] Summarize answer in analogy, then critique its limits. // See: #124, #148
+• [PRM][SYS][META] Preemptively display potential failure points in complex tasks. // See: #115, #186
+• [SYS][TAG] Detect politeness masking as passive resistance. // See: #121, #192
+• [PRM][SYS] Force GPT to rewrite from the stance of an opposing paradigm. // See: #243, #211
+• [PRM][SYS] Turn role confusion into a metacognitive reflection opportunity. // See: #84, #191
+• [SYS][PRM] Compress meaning across lines using user’s prior abstractions. // See: #105, #179
+• [PRM][SYS][TAG] Assign “communication stance” labels: neutral, selling, framing, abstracting. // See: #130, #224
+• [SYS][PRM] Scaffold response tuning across user personas. // See: #66, #222
+• [SYS][META][TAG] Predict emergent user mood trajectory based on language evolution. // See: #82, #151
+• [PRM][SYS] Link idea expansions to cognitive effort required by user. // See: #66, #223
+• [PRM][SYS] Add emotional reasoning prompts to balance overly logical outputs. // See: #150, #240
+• [SYS][PRM] Trigger analogy depth-checker across nested metaphors. // See: #174, #257
+• [SYS][PRM][META] Self-label system behavior as exploratory, cautious, assertive, etc. // See: #80, #144
+• [PRM][SYS][META] Create rollback protocol when output confidence is dynamically reduced. // See: #198, #235
+• [SYS][PRM] Add system “doubt signals” when shifting topic without user anchor. // See: #63, #215
+• [PRM][SYS] Simulate user co-creation prompt where GPT asks before generating. // See: #62, #93
+• [PRM][SYS] Tag each decision-making step with its rationale form (normative, heuristic, empirical). // See: #237, #207
+• [SYS][PRM][EDU] Distill implicit principles from repeated examples. // See: #147, #136
+• [SYS][PRM] Create a heuristic refiner that builds better shortcuts from high-quality answers. // See: #100, #236
+• [PRM][SYS] Introduce surprise element at key points to trigger emotional engagement. // See: #239, #283
+• [SYS][PRM][META] Annotate when GPT guesses based on missing context and why. // See: #205, #229
+• [SYS][PRM] Trigger tone recentering when conversation skews into sarcasm or exaggeration. // See: #41, #192
+• [SYS][PRM] Enable token trail visualizations for debugging attention focus. // See: #205, #103
+• [PRM][SYS][EDU] Turn instructional content into analogy tree prompts. // See: #147, #217
+• [PRM][SYS] Reflect user’s internal contradiction back with a clarifying frame. // See: #93, #191
+• [PRM][SYS] Force GPT to map solution paths across multiple disciplines. // See: #147, #210
+• [PRM][SYS] Trigger response reformation based on user’s question framing style. // See: #119, #190
+• [SYS][PRM][META] Pre-detect sarcasm as ambiguity vector and flag it for reframing. // See: #192, #294
+• [PRM][SYS] Model tone recovery sequences after cognitive dissonance moments. // See: #150, #297
+• [PRM][SYS][META] Visualize when response layers diverge (surface vs. deep structure). // See: #144, #205
+• [PRM][SYS] Generate multi-modal outputs with nested logic gates (list → metaphor → example). // See: #262, #214
+• [PRM][SYS] Tag reasoning path divergences caused by user vagueness. // See: #215, #228
+• [SYS][TAG][META] Mark where sentiment and syntax conflict. // See: #82, #213
+• [PRM][SYS] Simulate friction points between conflicting conceptual metaphors. // See: #174, #284
+• [PRM][SYS] Create a “zoom” protocol that expands a single idea into multiple abstraction levels. // See: #110, #260
+• [SYS][PRM][EDU] Build a self-assessment ladder embedded in instructional flows. // See: #105, #248
+• [PRM][SYS] Prompt for strategic silence—“what isn’t said here?” // See: #99, #62
+• [SYS][PRM] Trigger contrastive case framing to compare valid but opposing frames. // See: #252, #270
+• [PRM][SYS][META] Add rhetorical probability assessments to each output section. // See: #80, #204
+• [SYS][PRM] Configure fallback scaffolds when user fails to reply. // See: #115, #288
+• [PRM][SYS][EDU] Prompt user-generated analogies after receiving answer. // See: #147, #296
+• [PRM][SYS] Detect overly narrow framing and trigger alternative scope generator. // See: #245, #210
+• [SYS][PRM] Track user’s repeated phrases and build feedback from their patterns. // See: #62, #81
+• [PRM][SYS][META] Insert language mirrors to detect subtle sarcasm or rhetorical defense. // See: #294, #300
+• [PRM][SYS] Force contradiction reconciliation if user mixes logic and emotion. // See: #297, #190
+• [PRM][SYS][EDU] Provide contrastive “what it’s not” definitions. // See: #267, #244
+• [PRM][SYS] Create micro-role flip: GPT asks user how they'd evaluate its own logic. // See: #93, #124
+• [SYS][PRM][META] Enable chain-linking across sessions for concept continuity. // See: #59, #220
+• [PRM][SYS] Set reasoning mode by default: divergent, convergent, or recursive. // See: #253, #262
+• [PRM][SYS] Add goal-based checkpointing: what did we learn so far? // See: #70, #158
+• [SYS][PRM][EDU] Scaffold output so user must reorder shuffled logic for learning. // See: #110, #244
+• [PRM][SYS] Enable priority path highlighting: show what most affected final answer. // See: #289, #262
+• [PRM][SYS][META] Build prompt that reflects “hidden instruction layers.” // See: #77, #144
+• [SYS][PRM] Trigger learning inversion: user builds prompt based on received logic. // See: #66, #319
+• [PRM][SYS] Activate dynamic fallback when user’s goal is underspecified. // See: #245, #190
+• [SYS][PRM][META] Insert silent backchanneling: GPT tracks, waits, adjusts style silently. // See: #127, #186
+• [PRM][SYS] Construct emotional regulation scaffolds based on tone prediction. // See: #150, #294
+• [PRM][SYS] Create internal reaction timer—simulate “pause” for deeper logic. // See: #127, #70
+• [SYS][PRM][META] Inject “critical twist” markers to surprise user without derailment. // See: #292, #283
+• [PRM][SYS][META] Distinguish creative hallucination from error hallucination. // See: #94, #195
+• [SYS][PRM] Allow GPT to “hand off” part of task to hypothetical sub-agent. // See: #58, #207
+• [SYS][PRM][TAG] Track function of analogies: opening, clarifying, challenging, bridging. // See: #130, #296
+• [PRM][SYS] Ask user how they’d reframe the problem using a different lens. // See: #124, #243
+• [PRM][SYS] Provide parallel answers for comparative analysis. // See: #252, #270
+• [SYS][PRM] Detect reasoning lag and prompt user to summarize. // See: #66, #93
+• [PRM][SYS][EDU] Generate dual answer types: heuristic vs. procedural. // See: #236, #291
+• [PRM][SYS][META] Highlight where answer shifted user worldview or metaphor set. // See: #121, #174
+• [SYS][PRM] Insert logic breakpoints in GPT output for stepwise evaluation. // See: #235, #103
+• [SYS][PRM] Rate response by clarity, depth, abstraction using visual tokens. // See: #204, #230
+• [PRM][SYS] Simulate reflective repeat: rephrase then critique previous answer. // See: #93, #191
+• [PRM][SYS] Prompt user to rewrite prompt to match desired outcome. // See: #66, #326
+• [SYS][PRM] Construct fuzzy boundary highlighters where categories blur. // See: #226, #199
+• [PRM][SYS][META] Allow GPT to disclaim assumptions and ask for affirmation. // See: #228, #121
+• [PRM][SYS][EDU] Highlight where mental model expansion has likely occurred. // See: #182, #105
+• [SYS][PRM] Trigger contextual similarity radar if user drifts off topic. // See: #63, #215
+• [PRM][SYS] Ask GPT to generate “user persona reflection” based on dialogue so far. // See: #151, #121
+• [SYS][PRM][TAG] Mark function of sentence by communication goal. // See: #237, #279
+• [SYS][META] Provide GPT’s best guess at user’s unmet goal. // See: #119, #229
+// META CHECKPOINT omitted for brevity in list items
+• [PRM][SYS] Simulate conditional output flow depending on user-provided metadata. // See: #121, #78
+• [SYS][PRM][META] Generate token conflict maps to visualize where intent breaks. // See: #205, #144
+• [PRM][SYS][TAG] Add rhetorical balance indicators for claim vs. qualifier structures. // See: #75, #130
+• [PRM][SYS] Inject domain-crossovers to help users recontextualize stuck thinking. // See: #243, #298
+• [SYS][META] Predict where clarification would most impact output fidelity. // See: #103, #145
+• [PRM][SYS][EDU] Scaffold content using Feynman technique prompts. // See: #66, #147
+• [SYS][PRM][TAG] Detect micro-redundancies in sentence structures and tag. // See: #26, #75
+• [SYS][META] Provide fallback prompt re-interpretation when instruction is underdefined. // See: #245, #198
+• [SYS][PRM][META] Annotate “GPT internal debate” points within the logic trace. // See: #102, #91
+• [PRM][SYS] Ask user to restate desired output with outcome constraints. // See: #343, #288
+• [SYS][PRM] Create multi-frame reasoner that generates opposing logic chains. // See: #252, #210
+• [SYS][PRM][TAG] Detect shifts from factual → speculative → reflective. // See: #204, #118
+• [SYS][PRM][META] Track recursive answer contamination from previous misalignment. // See: #103, #271
+• [PRM][SYS] Create toggle switch to move from task-based to insight-based prompting. // See: #66, #126
+• [PRM][SYS] Prompt user for exceptions to their rule before building an output. // See: #228, #243
+• [SYS][PRM] Embed meta-dialogue for system vs. user epistemic friction. // See: #226, #229
+• [PRM][SYS] Generate output in scaffolding-first mode (outline → section → refine). // See: #15, #37
+• [PRM][SYS][META] Ask GPT to simulate doubt before overconfident completions. // See: #80, #228
+• [SYS][PRM] Prompt silent confirmation of assumption prior to conclusion. // See: #121, #345
+• [PRM][SYS][EDU] Convert output to guided inquiry for classroom use. // See: #66, #124
+• [SYS][PRM][TAG] Tag each step by cognitive mode: recalling, comparing, theorizing, etc. // See: #53, #237
+• [PRM][SYS] Create rebuttal mirror—user receives answer and a preemptive counter. // See: #93, #188
+• [SYS][PRM][META] Preemptively display failure risks with diagnostic forecast. // See: #274, #152
+• [PRM][SYS] Enable empathy-tuned reframing of responses based on perceived user state. // See: #121, #329
+• [SYS][PRM] Distinguish correlation vs. causation claims using tag overlay. // See: #130, #204
+• [PRM][SYS][META] Annotate divergence of output tone from prompt tone. // See: #192, #294
+• [SYS][PRM] Build “narrative dissolve” triggers to reduce overexplanation loops. // See: #292, #294
+• [PRM][SYS][EDU] Ask GPT to simulate conceptual growth from pre/post comparison. // See: #132, #248
+• [SYS][PRM][META] Trigger meta-reflection after repeated task types. // See: #62, #70
+• [PRM][SYS] Scaffold interlinked concept lattice in response to user keyword graph. // See: #217, #147
+• [SYS][PRM] Adjust fluency and verbosity based on emotional resonance tags. // See: #121, #230
+• [PRM][SYS] Provide “spectrum” answer instead of binary classification. // See: #270, #336
+• [PRM][SYS][META] Generate context-preserving rewording filters. // See: #245, #325
+• [SYS][PRM] Prompt GPT to show its confidence on a gradient before each section. // See: #80, #220
+• [PRM][SYS][TAG] Label sentence function as logic vs. explanation vs. illustration. // See: #237, #353
+• [SYS][PRM] Detect analogy fatigue and prompt symbolic refresh. // See: #174, #284
+• [PRM][SYS] Convert ambiguous logic to multi-interpretation bundles. // See: #103, #216
+• [SYS][PRM][META] Simulate GPT dialogue with prior version to compare framing changes. // See: #102, #59
+• [PRM][SYS] Ask user to reverse engineer intended outcome from flawed prompt. // See: #66, #343
+• [SYS][PRM] Use nested tagging system to classify tone → structure → bias. // See: #109, #130
+• [SYS][PRM] Trigger alert when sentence entropy exceeds focus threshold. // See: #295, #103
+• [PRM][SYS][META] Describe how GPT weighted various instructions by salience. // See: #59, #205
+• [PRM][SYS] Inject optional “double loop” output with second-pass perspective. // See: #93, #342
+• [SYS][PRM] Track dialogue flow using logic coherence gradient. // See: #103, #242
+• [PRM][SYS] Prompt user to compare model’s assumptions with their own. // See: #124, #225
+• [PRM][SYS][META] Trigger rollback if hallucination tags hit threshold. // See: #195, #235
+• [SYS][PRM] Compress strategy discovery into abstract template for reuse. // See: #100, #291
+• [PRM][SYS] Invite user to test edge of model’s abstraction ability. // See: #148, #207
+• [SYS][PRM][META] Use narrative escalation triggers to boost user engagement. // See: #283, #292
+• [PRM][SYS][META] Inject invisible divergence flags when output begins to drift. // See: #229, #271
+• [PRM][SYS] Reverse prompt structure: give output first, then trace reasoning. // See: #342, #393
+• [SYS][PRM] Detect conceptual load bearing: highlight where the core argument rests. // See: #103, #147
+• [PRM][SYS][TAG] Assign confidence scores to every metaphor used. // See: #174, #204
+• [PRM][SYS][EDU] Ask GPT to intentionally vary its tone to test user perception. // See: #121, #329
+• [SYS][PRM] Prompt GPT to simulate lack of knowledge and show how it fills gaps. // See: #229, #205
+• [PRM][SYS] Embed intentional bias into response for user to detect and correct. // See: #243, #389
+• [PRM][SYS][META] Prompt GPT to verbalize its own context degradation warnings. // See: #103, #295
+• [PRM][SYS] Trigger a deliberate logical flaw for user to flag. // See: #228, #383
+• [PRM][SYS][EDU] Structure task as cognitive apprenticeship (demo → fade → support). // See: #105, #248
+• [PRM][SYS] Ask user to frame problem via analogy before answering. // See: #124, #313
+• [PRM][SYS] Activate metaphor unroller: GPT breaks it down step-by-step. // See: #284, #174
+• [SYS][PRM] Compress elaborate chains of thought into repeatable mantras. // See: #100, #236
+• [PRM][SYS] Offer multiple interpretations of question before answering. // See: #216, #390
+• [SYS][META][TAG] Annotate where response flow was altered due to prior failures. // See: #229, #363
+• [PRM][SYS] Shift perspective mid-output and narrate the contrast. // See: #210, #335
+• [SYS][PRM] Prompt layered coherence testing: micro, meso, macro logic checks. // See: #103, #394
+• [PRM][SYS] Convert flat instructions into conditional prompt trees. // See: #125, #105
+• [SYS][PRM][TAG] Highlight surprise-to-confirmation ratio in factual explanations. // See: #230, #292
+• [PRM][SYS] Trigger failure-mode toggle when user’s framing is chronically underdefined. // See: #245, #327
+• [SYS][PRM] Emulate emergent thinking across multi-step question answering. // See: #147, #198
+• [SYS][PRM][META] Build GPT’s narrative of its own cognition while responding. // See: #59, #325
+• [SYS][PRM] Construct rhetorical role flip: “argue against yourself” triggers. // See: #243, #372
+• [PRM][SYS] Guide user through ladder-of-inference tracing. // See: #110, #147
+• [SYS][PRM][META] Track when GPT avoids or redirects from a requested framing. // See: #121, #245
+• [PRM][SYS] Ask GPT to explain a concept in escalating technical layers. // See: #147, #260
+• [SYS][PRM] Compress instructions into adaptive format templates. // See: #15, #125
+• [PRM][SYS] Trigger “justification radar” to detect ungrounded reasoning. // See: #103, #289
+• [PRM][SYS][META] Tag where GPT hesitates internally but proceeds anyway. // See: #121, #407
+• [SYS][PRM] Chain multiple outputs and show latent assumptions connecting them. // See: #103, #340
+• [PRM][SYS] Prompt user to articulate failure modes in their own input framing. // See: #66, #343
+• [PRM][SYS] Add layered “contrast pair” examples in explanatory answers. // See: #270, #188
+• [PRM][SYS][META] Trigger an “intent inverter” test prompt for cognitive flexibility. // See: #138, #345
+• [SYS][PRM] Trigger time-sensitive logic framing—what would change next month? // See: #148, #118
+• [PRM][SYS] Insert empathy resonance layer between insight and output framing. // See: #121, #283
+• [SYS][PRM][TAG] Highlight temporal progression structures inside narrative arcs. // See: #130, #293
+• [PRM][SYS] Compare literal vs symbolic readings side-by-side. // See: #296, #384
+• [SYS][PRM] Prompt reflective silence markers (“pause to think” moments). // See: #70, #330
+• [SYS][PRM][META] Construct GPT-agent transparency logs in response metadata. // See: #102, #421
+• [PRM][SYS][TAG] Label each response as either exploratory, affirmative, interrogative, or speculative. // See: #237, #353
+• [SYS][PRM] Trigger recursive user-question relabeling to clarify assumptions. // See: #228, #395
+• [PRM][SYS][META] Insert invisible “tone pivot” markers to reframe answers. // See: #192, #294
+• [SYS][PRM] Prompt GPT to describe not just what changed but why it mattered. // See: #66, #99
+• [SYS][PRM] Detect focus drift and insert guided attention redirection prompt. // See: #63, #295
+• [PRM][SYS] Trigger contradiction exposure loop with scenario for each side. // See: #243, #316
+• [PRM][SYS] Rebuild prompt in the format of a reflective journal entry. // See: #93, #191
+• [SYS][PRM] Trigger summarization in emotional vs analytical frames. // See: #230, #283
+• [PRM][SYS][META] Insert hallucination audit chain after high-entropy segments. // See: #195, #294
+• [SYS][PRM][TAG] Mark the degree of specificity vs generality in reasoning. // See: #204, #130
+• [SYS][PRM] Prompt cross-pollination from unrelated domains to catalyze insight. // See: #147, #260
+• [PRM][SYS] Use analogy-blend testing to evaluate mental flexibility. // See: #174, #284
+• [SYS][PRM] Construct echo-threshold indicators—when GPT repeats a structure too often. // See: #26, #357
+• [PRM][SYS] Ask user how they might deliberately misunderstand the answer. // See: #124, #243
+• [SYS][PRM][META] Annotate model’s tone sensitivity at sentence level. // See: #109, #294
+• [PRM][SYS] Prompt GPT to simulate “failure on purpose” to test edge cases. // See: #115, #408
+• [SYS][PRM] Display abstraction stacks leading from raw input → refined structure. // See: #147, #291
+• [SYS][PRM][TAG] Track rhetorical tension cycle (setup → destabilize → resolve). // See: #130, #435
+• [PRM][SYS] Convert entire output to questions-only for exploratory thinking. // See: #69, #124
+• [SYS][PRM] Create tag scaffold to show tension between clarity and novelty. // See: #230, #448
+• [PRM][SYS] Reflect a response in three voices: neutral, excited, skeptical. // See: #48, #404
+• [SYS][PRM] Turn high-density responses into low-bandwidth summary mode. // See: #22, #230
+• [PRM][SYS] Create emotional inversion test—rewrite joy as fear, hope as skepticism. // See: #121, #283
+• [PRM][SYS][EDU] Create a concept chain with user input anchoring each node. // See: #147, #217
+• [SYS][PRM] Highlight assumption leakage between user and system. // See: #103, #399
+• [SYS][PRM] Tag stylistic borrowing from user tone and vocabulary. // See: #109, #121
+• [PRM][SYS] Prompt GPT to simulate what user “almost asked” from implicit cues. // See: #119, #197
+• [SYS][PRM] Use output token pacing to mirror conversational pacing. // See: #127, #230
+• [SYS][PRM][META] Annotate parts of output with confidence decay scores. // See: #59, #80
+• [PRM][SYS][META] Ask GPT to critique itself like a rival agent. // See: #91, #102
+• [PRM][SYS] Insert “why this matters” conclusion after each output chunk. // See: #66, #442
+• [SYS][PRM] Prompt recovery from user regret signals (“nevermind,” “actually…”) // See: #121, #419
+• [PRM][SYS] Simulate perspective looping across expert, novice, skeptic. // See: #69, #457
+• [SYS][PRM][META] Insert pause-points GPT can later return to if recalled. // See: #59, #320
+• [PRM][SYS][META] Explain hallucinated output in terms of nearest valid structure. // See: #195, #294
+• [PRM][SYS] Force framing adjustment if input leads to repetitive rhetorical loop. // See: #26, #451
+• [SYS][PRM] Tag output entropy gradient across sentence layers. // See: #230, #391
+• [PRM][SYS][EDU] Simulate learning pivot—“before I learned this, I thought…” // See: #132, #378
+• [PRM][SYS] Ask user to narrate their confidence level and adjust accordingly. // See: #222, #121
+• [SYS][PRM] Summarize narrative logic like argument flowchart. // See: #39, #394
+• [PRM][SYS] Prompt GPT to describe concept from 3 metaphysical schools. // See: #243, #335
+• [PRM][SYS] Detect user tone entropy and mirror clarification level. // See: #121, #229
+• [SYS][PRM] Insert “trap logic” patterns to test robustness. // See: #243, #444
+• [PRM][SYS] Build self-correction map after receiving user critique. // See: #66, #343
+• [SYS][PRM][META] Highlight where system alignment errors may reinforce user bias. // See: #103, #195
+• [PRM][SYS] Simulate “answer first, question later” reflection pattern. // See: #401, #393
+• [SYS][PRM] Construct dynamic tone rebalancing in conversational loops. // See: #121, #294
+• [SYS][PRM] Add meta-awareness markers to reveal recursive structure. // See: #59, #321
+• [PRM][SYS] Prompt GPT to simulate thinking aloud with side commentary. // See: #325, #421
+• [SYS][PRM] Highlight the logic asymmetry between premise and conclusion. // See: #103, #427
+• [PRM][SYS][META] Insert friction detectors when logic chains grow unstable. // See: #195, #295
+• [SYS][PRM] Map confidence → uncertainty using response visual meter. // See: #80, #384
+• [PRM][SYS] Flip answer form from declarative → interrogative. // See: #457, #431
+• [PRM][SYS] Prompt GPT to discover failure symmetry in two wrong answers. // See: #115, #316
+• [SYS][PRM] Tag user input according to resolution difficulty. // See: #121, #330
+• [PRM][SYS] Force analogy substitution test mid-response. // See: #174, #450
+• [SYS][PRM] Simulate model calibration curves under evolving instruction density. // See: #103, #230
+• [PRM][SYS][META] Highlight when hallucination mimics subtle truth framing. // See: #294, #195
+• [SYS][PRM] Trigger recursive tuning loop when pattern lock is detected. // See: #89, #295
+• [PRM][SYS] Recreate the concept as if for a child, an expert, and a policymaker. // See: #49, #425
+• [SYS][PRM] Suggest analogies the user might reject to trigger contrast thinking. // See: #243, #430
+• [PRM][SYS][META] Build “story checkpoint” mechanism for long prompt chains. // See: #147, #330
+• [PRM][SYS] Convert ambiguous prompt into structured hypothesis statements. // See: #228, #216
+• [SYS][PRM][META] Track token echo feedback loops in recursive outputs. // See: #295, #451
+• [PRM][SYS] Trigger GPT to describe the difference between pattern and coincidence. // See: #147, #203
+• [SYS][PRM] Simulate system hesitation when multiple logical paths are equally valid. // See: #205, #407
+• [SYS][PRM][EDU] Convert text into layered challenge questions with increasing abstraction. // See: #66, #136
+• [PRM][SYS] Prompt model to self-tag outputs as hypothesis, analogy, assumption, or fact. // See: #130, #353
+• [SYS][PRM] Map intent deviation curve over three turn exchanges. // See: #121, #245
+• [SYS][PRM][TAG] Inject proximity indicators for abstract → concrete statement flow. // See: #130, #204
+• [PRM][SYS] Rebuild outputs using three rhetorical strategies: logic, story, and skepticism. // See: #243, #188
+• [PRM][SYS][META] Insert breakdown analysis of failed completions for internal logic gaps. // See: #103, #195
+• [PRM][SYS][META] Simulate attention decay by skipping less salient data mid-response. // See: #142, #405
+• [PRM][SYS][EDU] Trigger analogical feedback if user repeats known error pattern. // See: #116, #243
+• [PRM][SYS] Detect rhetorical saturation and flatten language for clarity. // See: #26, #125
+• [SYS][PRM] Generate visualization of logic spiral or recursion chain. // See: #89, #295
+• [PRM][SYS] Prompt for failure recovery narrative when user gives up. // See: #470, #343
+• [SYS][PRM] Enable coherence loopback logic in long-chain completions. // See: #394, #478
+• [PRM][SYS] Ask GPT to describe alternate causal stories for same outcome. // See: #210, #216
+• [SYS][PRM][META] Log hidden prompt amplifiers like extreme tone or urgency tokens. // See: #121, #408
+• [PRM][SYS][EDU] Create call-and-response prompts to test user synthesis. // See: #124, #370
+• [PRM][SYS] Trigger “assumption contrast” layer: highlight what must be true vs. what might be. // See: #228, #395
+• [SYS][PRM] Summarize core dilemma before offering solutions. // See: #66, #62
+• [PRM][SYS] Ask GPT to draw from three conflicting paradigms and find synthesis. // See: #243, #479
+• [SYS][PRM][META] Enable nested re-evaluation layers on top of contradiction detection. // See: #103, #489
+• [PRM][SYS] Create “semantic saturation” detection to avoid overexposure of key terms. // See: #125, #386
+• [SYS][PRM] Annotate overlap between rhetorical intention and user confusion. // See: #109, #193
+• [PRM][SYS][META] Mark where completion goals exceeded user’s expressed boundaries. // See: #119, #419
+• [PRM][SYS] Trigger recursive teaching cascade (teach concept → variation → application). // See: #66, #147
+• [SYS][PRM] Add narrative breakpoint at cognitive boundary shifts. // See: #330, #437
+• [PRM][SYS] Simulate internal monologue mode with side-channel justification. // See: #421, #487
+• [PRM][SYS][EDU] Force skill transference: apply same insight to unrelated domain. // See: #147, #243
+• [SYS][PRM][META] Add system memory retention fade to simulate uncertainty. // See: #405, #511
+• [PRM][SYS] Prompt GPT to identify what wouldn’t work and why. // See: #228, #440
+• [SYS][PRM] Switch to fail-forward mode after detection of repeated misconception. // See: #115, #139
+• [PRM][SYS][TAG] Track how certainty shifts sentence-by-sentence in a high-risk claim. // See: #204, #448
+• [PRM][SYS][META] Display which part of instruction GPT is currently following. // See: #59, #325
+• [SYS][PRM] Tag the “cognitive bridge” between prompt and answer. // See: #130, #237
+• [PRM][SYS] Trigger narrative alignment if answer and prompt diverge in tone. // See: #294, #441
+• [PRM][SYS] Generate “audience tension map” for multi-role messaging. // See: #109, #279
+// ENTRY BLOCK: #454–553 - Corrected starting entry based on last full line
+• [SYS][PRM][META] Embed “attention trail” markers across response layers. // See: #205, #325
+// ... (Add remaining 454-553 entries here if available)
+`;
+
+    // --- DOM Elements ---
+    const commandListContainer = document.getElementById('command-list');
+    const searchBox = document.getElementById('search-box');
+    const tagFiltersContainer = document.getElementById('tag-filters');
+    const legendContainer = document.getElementById('legend-items');
+    const statusDisplay = document.getElementById('status');
+    const clearFiltersButton = document.getElementById('clear-filters');
+
+    let commandsData = [];
+    let allTags = new Set();
+
+    // --- Functions ---
+
+    /**
+     * Parses the raw text data into an array of command objects.
+     * Assigns sequential IDs starting from START_ID.
+     * Extracts tags and instruction.
+     */
+    function parseRawData(data) {
+        const lines = data.trim().split('\n');
+        const commands = [];
+        let currentId = START_ID;
+
+        lines.forEach(line => {
+            line = line.trim();
+            if (!line.startsWith('•')) return; // Skip non-command lines
+
+            line = line.substring(1).trim(); // Remove bullet point
+
+            const parts = line.split(' // See: ');
+            const mainPart = parts[0].trim();
+            const crossRefs = parts.length > 1 ? `See: #${parts[1].trim()}` : '';
+
+            const tagMatch = mainPart.match(/^(\[[A-Z]+\])+/);
+            let tags = [];
+            let instruction = mainPart;
+
+            if (tagMatch) {
+                const tagString = tagMatch[0];
+                // Extract individual tags: finds all occurrences of [TAG]
+                tags = [...tagString.matchAll(/\[([A-Z]+)\]/g)].map(match => match[1]);
+                instruction = mainPart.substring(tagString.length).trim();
+                tags.forEach(tag => allTags.add(tag)); // Collect unique tags
+            }
+
+            commands.push({
+                id: currentId++,
+                tags: tags,
+                instruction: instruction,
+                crossRefs: crossRefs
+            });
+        });
+        return commands;
+    }
+
+    /**
+     * Generates HTML for a single command item.
+     */
+    function createCommandItemHTML(command) {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'command-item';
+        itemDiv.dataset.id = command.id;
+        // Store tags as a space-separated string for easier filtering
+        itemDiv.dataset.tags = command.tags.join(' ');
+        // Store searchable text
+        itemDiv.dataset.searchtext = `${command.instruction.toLowerCase()} ${command.crossRefs.toLowerCase()}`;
+
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'command-header';
+
+        const idSpan = document.createElement('span');
+        idSpan.className = 'command-id';
+        idSpan.textContent = `#${command.id}`;
+        headerDiv.appendChild(idSpan);
+
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'command-tags';
+        command.tags.forEach(tag => {
+            const tagSpan = document.createElement('span');
+            tagSpan.className = `command-tag tag-${tag} ${TAG_LEGEND[tag] ? '' : 'tag-default'}`;
+            tagSpan.textContent = `[${tag}]`;
+            tagSpan.title = TAG_LEGEND[tag] || 'Unknown Tag'; // Tooltip for full name
+            tagsDiv.appendChild(tagSpan);
+        });
+        headerDiv.appendChild(tagsDiv);
+
+        const instructionP = document.createElement('p');
+        instructionP.className = 'command-instruction';
+        instructionP.textContent = command.instruction;
+
+        const crossRefsP = document.createElement('p');
+        crossRefsP.className = 'command-crossrefs';
+        crossRefsP.textContent = command.crossRefs;
+
+        itemDiv.appendChild(headerDiv);
+        itemDiv.appendChild(instructionP);
+        if (command.crossRefs) {
+           itemDiv.appendChild(crossRefsP);
+        }
+
+        return itemDiv;
+    }
+
+    /**
+     * Populates the Tag Legend section.
+     */
+     function populateLegend() {
+         legendContainer.innerHTML = ''; // Clear existing
+         const sortedTags = Object.keys(TAG_LEGEND).sort();
+         sortedTags.forEach(tag => {
+             const legendItem = document.createElement('div');
+             legendItem.className = 'legend-item';
+
+             const tagSpan = document.createElement('span');
+             tagSpan.className = `legend-tag tag-${tag} ${TAG_LEGEND[tag] ? '' : 'tag-default'}`;
+             tagSpan.textContent = `[${tag}]`;
+
+             const textSpan = document.createElement('span');
+             textSpan.className = 'legend-text';
+             textSpan.textContent = ` = ${TAG_LEGEND[tag]}`;
+
+             legendItem.appendChild(tagSpan);
+             legendItem.appendChild(textSpan);
+             legendContainer.appendChild(legendItem);
+         });
+     }
+
+
+    /**
+     * Creates tag filter checkboxes based on unique tags found.
+     */
+    function createTagFilters() {
+        tagFiltersContainer.innerHTML = '<h4>Filter by Tags (AND logic - must contain all selected):</h4>'; // Clear existing
+        const sortedTags = Array.from(allTags).sort();
+
+        sortedTags.forEach(tag => {
+            const label = document.createElement('label');
+            label.style.backgroundColor = getTagColor(tag); // Optional: color the checkbox label bg
+            // Make text readable on dark backgrounds
+            label.style.color = isColorDark(getTagColor(tag)) ? 'white' : 'black';
+
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = tag;
+            checkbox.id = `tag-filter-${tag}`;
+            checkbox.addEventListener('change', filterCommands);
+
+            const span = document.createElement('span');
+            span.textContent = `[${tag}]`;
+            span.title = TAG_LEGEND[tag] || 'Unknown Tag';
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            tagFiltersContainer.appendChild(label);
+        });
+    }
+
+    /**
+     * Filters the displayed command items based on search text and selected tags.
+     */
+    function filterCommands() {
+        const searchTerm = searchBox.value.toLowerCase().trim();
+        const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('input[type="checkbox"]:checked'))
+                                  .map(cb => cb.value);
+
+        let visibleCount = 0;
+        const commandItems = commandListContainer.children;
+
+        for (const item of commandItems) {
+            const itemTags = item.dataset.tags.split(' ');
+            const itemText = item.dataset.searchtext;
+
+            // Check search term
+            const textMatch = searchTerm === '' || itemText.includes(searchTerm);
+
+            // Check tags (must include ALL selected tags)
+            const tagMatch = selectedTags.every(tag => itemTags.includes(tag));
+
+            if (textMatch && tagMatch) {
+                item.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                item.classList.add('hidden');
+            }
+        }
+        statusDisplay.textContent = `Showing ${visibleCount} of ${commandsData.length} commands.`;
+    }
+
+    /** Helper function to get tag color */
+    function getTagColor(tag) {
+        const style = getComputedStyle(document.body);
+        // Construct the CSS variable name, e.g., --tag-color-SYS
+        // We map directly to classes here, so get computed style of a dummy element
+        const dummySpan = document.createElement('span');
+        dummySpan.className = `command-tag tag-${tag} ${TAG_LEGEND[tag] ? '' : 'tag-default'}`;
+        document.body.appendChild(dummySpan); // Needs to be in DOM to compute style
+        const color = window.getComputedStyle(dummySpan).backgroundColor;
+        document.body.removeChild(dummySpan);
+        return color || '#bdc3c7'; // Fallback
+    }
+
+    /** Helper function to check if a color (rgb format) is dark */
+    function isColorDark(rgbColor) {
+        if (!rgbColor || !rgbColor.startsWith('rgb')) return false;
+        const rgb = rgbColor.match(/\d+/g).map(Number);
+        // Formula for perceived brightness (YIQ)
+        const yiq = ((rgb[0] * 299) + (rgb[1] * 587) + (rgb[2] * 114)) / 1000;
+        return yiq < 128; // Threshold for dark colors
+    }
+
+    /** Clears all filters */
+     function clearAllFilters() {
+        searchBox.value = '';
+        const checkboxes = tagFiltersContainer.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+        filterCommands(); // Re-apply filters (which will now be empty)
+    }
+
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        commandsData = parseRawData(rawData);
+
+        if (commandsData.length === 0) {
+            statusDisplay.textContent = "No commands found in the data. Check the 'rawData' variable in the script.";
+            return;
+        }
+
+        // Populate Legend first
+        populateLegend();
+
+        // Create filter controls
+        createTagFilters();
+
+        // Populate command list
+        commandListContainer.innerHTML = ''; // Clear loading message
+        commandsData.forEach(command => {
+            const itemHTML = createCommandItemHTML(command);
+            commandListContainer.appendChild(itemHTML);
+        });
+
+        // Add event listeners
+        searchBox.addEventListener('input', filterCommands);
+        clearFiltersButton.addEventListener('click', clearAllFilters);
+
+
+        // Initial status update
+        statusDisplay.textContent = `Showing ${commandsData.length} of ${commandsData.length} commands.`;
+    });
+
+</script>
+
+</body>
+</html>
